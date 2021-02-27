@@ -1,15 +1,20 @@
+// Package Imports
 import React, { useState, useEffect, useRef } from "react";
 import socketIOClient from 'socket.io-client';
 
+// Asset Imports
 import logo from'./logo.png';
 import './App.css';
 
+// Component
 const App = () => {
   // State
-  const [input, setInput] = useState('');
+  const [message, setMessage] = useState('');
+  const [recipient, setRecipient] = useState('');
   const [socket, setSocket] = useState(null);
   const [updates, setUpdates] = useState([]);
 
+  // Refs
   const updatesRef = useRef(null);
   updatesRef.current = updates;
 
@@ -17,17 +22,20 @@ const App = () => {
   useEffect(() => {
     const estSocket = socketIOClient("https://5d11ab70603c.ngrok.io");
     estSocket.on('messageStatus', (twilioStatus) => {
-      const newUpdates = [...updatesRef.current, twilioStatus]
+      console.log(twilioStatus)
+      const newTwilioStatus = {...twilioStatus, dt: new Date().toISOString()}
+      const newUpdates = [...updatesRef.current, newTwilioStatus]
       setUpdates(newUpdates)
     })
     estSocket.on('messageReceivedStatus', (twilioStatus) => {
-      const newUpdates = [twilioStatus]
+      const newTwilioStatus = {...twilioStatus, dt: new Date().toISOString()}
+      const newUpdates = [newTwilioStatus]
       setUpdates(newUpdates)
     })
     setSocket(estSocket)
   }, [])
 
-// Render 
+  // Render 
   return (
     <div className="App">
       <header>
@@ -36,14 +44,20 @@ const App = () => {
         <div className="content-container">
           <div className="controls">
         <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Type messsage"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Message"
+        />
+        <input
+        value={recipient}
+        onChange={(e) => setRecipient(e.target.value)}
+        placeholder="Mobile"
+        type="text"
         />
         <div>
         <div className="buttons">
         <button
-        onClick={() => {setInput('');  setUpdates([]); socket.emit('smsSend', input)}}
+        onClick={() => {socket.emit('smsSend', { message, recipient }); setMessage('');  setRecipient(''); setUpdates([]); }}
         >Send</button>
         </div>
         </div>
@@ -53,6 +67,7 @@ const App = () => {
           { updates.length > 0 ?
             updates.map((u, idx) => <li key={idx}> 
               <div className="sid">{u.SmsSid}</div>
+              <div><span>Timestamp</span>: {u.dt}</div>
               <div><span>Status</span>: {u.SmsStatus}</div>
               <div><span>To</span>: {u.To}</div>
               <div><span>From</span>: {u.From}</div>

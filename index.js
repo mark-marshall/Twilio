@@ -18,12 +18,12 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
-const sendSMS = async (message) => {
+const sendSMS = async (message, recipient) => {
   const twilioRes = await client.messages.create({
     body: message,
     from: process.env.TWILIO_NUM,
     statusCallback: 'https://5d11ab70603c.ngrok.io/MessageStatus',
-    to: process.env.MY_NUM,
+    to: recipient,
   })
   return twilioRes
 }
@@ -41,8 +41,9 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('disconnected');
   });
-  socket.on('smsSend', (msg) => {
-    sendSMS(msg)
+  socket.on('smsSend', (smsParams) => {
+    const { message, recipient } = smsParams
+    sendSMS(message, recipient)
   });
 });
 
@@ -55,7 +56,8 @@ app.get('/', (req, res) => {
 
 // EP2: Send an SMS (not in use by app)
 app.post('/sendMesage', async (req, res) => {
-      const sendRes = await sendSMS(req.body.message)
+      const { messsage, recipient } = req.body
+      const sendRes = await sendSMS(messsage, recipient)
       if (sendRes.sid) {
         res.status(200).json({"message": "SMS successfully sent"});
       } else {
