@@ -65,7 +65,7 @@ app.post('/sendMesage', async (req, res) => {
   }
 });
 
-// EP3: Receive SMS status updtes from Twilio
+// EP3: Receive SMS status updates from Twilio
 app.post('/MessageStatus', (req, res) => {
   io.emit('messageStatus', req.body);
   res.sendStatus(200);
