@@ -24,26 +24,26 @@ const sendSMS = async (message, recipient) => {
     from: process.env.TWILIO_NUM,
     statusCallback: 'https://5d11ab70603c.ngrok.io/MessageStatus',
     to: recipient,
-  })
-  return twilioRes
-}
+  });
+  return twilioRes;
+};
 
 // ================== Socket ==================
-const io = require("socket.io")(http, {
+const io = require('socket.io')(http, {
   cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
-  }
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
 });
 
 io.on('connection', (socket) => {
-  console.log('connected')
+  console.log('connected');
   socket.on('disconnect', () => {
     console.log('disconnected');
   });
   socket.on('smsSend', (smsParams) => {
-    const { message, recipient } = smsParams
-    sendSMS(message, recipient)
+    const { message, recipient } = smsParams;
+    sendSMS(message, recipient);
   });
 });
 
@@ -51,29 +51,29 @@ io.on('connection', (socket) => {
 
 // EP1: Test
 app.get('/', (req, res) => {
-  res.status(200).json({"message": "Alive"})
-})
+  res.status(200).json({ message: 'Alive' });
+});
 
 // EP2: Send an SMS (not in use by app)
 app.post('/sendMesage', async (req, res) => {
-      const { messsage, recipient } = req.body
-      const sendRes = await sendSMS(messsage, recipient)
-      if (sendRes.sid) {
-        res.status(200).json({"message": "SMS successfully sent"});
-      } else {
-        res.status(400).json({"mesage": "SMS failed to send"})
-      }
+  const { messsage, recipient } = req.body;
+  const sendRes = await sendSMS(messsage, recipient);
+  if (sendRes.sid) {
+    res.status(200).json({ message: 'SMS successfully sent' });
+  } else {
+    res.status(400).json({ mesage: 'SMS failed to send' });
+  }
 });
 
 // EP3: Receive SMS status updtes from Twilio
 app.post('/MessageStatus', (req, res) => {
-  io.emit('messageStatus', req.body)
+  io.emit('messageStatus', req.body);
   res.sendStatus(200);
 });
 
 // EP4: Receive incoming SMS
 app.post('/sms', (req, res) => {
-  io.emit('messageReceivedStatus', req.body)
+  io.emit('messageReceivedStatus', req.body);
 });
 
 // ================== Listening ==================
