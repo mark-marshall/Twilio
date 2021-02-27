@@ -22,7 +22,6 @@ const App = () => {
   useEffect(() => {
     const estSocket = socketIOClient('https://5d11ab70603c.ngrok.io');
     estSocket.on('messageStatus', (twilioStatus) => {
-      console.log(twilioStatus);
       const newTwilioStatus = { ...twilioStatus, dt: new Date().toISOString() };
       const newUpdates = [...updatesRef.current, newTwilioStatus];
       setUpdates(newUpdates);
